@@ -4,1271 +4,818 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ぐるっとポン コミュニティ</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --col-yellow: #fef100;
-      --col-blue: #005dab;
-      --col-pink: #d90060;
-      --col-green: #8cb808;
-      --col-white: #ffffff;
-      --text: #333;
-      --text-sub: #666;
-      --bg: #f0f0f0;
-      --card: #fff;
-      --border: #ddd;
-      --error: #d32f2f;
-      --radius: 10px;
-      --shadow: 0 2px 10px rgba(0,0,0,0.10);
+      --yellow:   #f8de00;
+      --pink:     #eb6ea5;
+      --blue:     #26a8e0;
+      --white:    #ffffff;
+      --bg:       #ffffff;
+      --text:     #222222;
+      --sub:      #888888;
+      --own-bg:   #fef0f6;
+      --admin-bg: #f0f8fd;
+      --radius:   12px;
+      --shadow:   0 1px 6px rgba(0,0,0,0.07);
     }
-    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, 'MS PGothic', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
+      font-family: 'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,'Yu Gothic',sans-serif;
+      font-size: 16px; background: var(--bg); color: var(--text); min-height: 100vh;
     }
 
-    /* ===== Register Screen ===== */
-    #screen-register { background: var(--card); min-height: 100vh; }
-    .reg-header {
-      background: var(--col-yellow);
-      padding: 32px 20px 28px;
-      text-align: center;
+    /* ===== HEADER ===== */
+    .app-header {
+      background: var(--pink); padding: 14px 20px; text-align: center;
+      position: sticky; top: 0; z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     }
-    .reg-header .brand { font-size: 28px; font-weight: bold; color: #222; letter-spacing: 1px; }
-    .reg-header .sub { font-size: 17px; color: #444; margin-top: 6px; }
-    .reg-body { padding: 32px 20px; max-width: 500px; margin: 0 auto; }
-    .form-group { margin-bottom: 30px; }
-    .form-group label {
-      display: block;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .req { color: #e53935; margin-left: 4px; }
-    .form-group input {
-      width: 100%;
-      font-size: 16px;
-      padding: 14px 14px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-      appearance: none;
-      color: var(--text);
-      background: #fff;
-    }
-    .form-group input:focus { border-color: var(--col-yellow); }
-    .form-note {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--text-sub);
-      line-height: 1.65;
-      padding: 10px 12px;
-      background: #f9f9f9;
-      border-radius: 6px;
-      border-left: 4px solid var(--col-yellow);
-    }
-    .form-error {
-      margin-top: 8px;
-      font-size: 14px;
-      color: var(--error);
-      display: none;
-      padding: 8px 12px;
-      background: #fdecea;
-      border-radius: 6px;
-    }
-    .form-error.visible { display: block; }
-    .btn-register {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      min-height: 56px;
-      font-size: 19px;
-      font-weight: bold;
-      background: var(--col-yellow);
-      color: #222;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, opacity 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-register:hover { background: #f0d800; }
-    .btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
+    .app-header h1 { font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: 0.04em; }
 
-    /* ===== Main Screen ===== */
-    #screen-main { background: var(--bg); min-height: 100vh; display: none; }
-    .main-header {
-      background: var(--col-yellow);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .main-header h1 { font-size: 20px; font-weight: bold; color: #222; flex: 1; }
-    .btn-profile {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      background: rgba(0,0,0,0.1);
-      border: none;
-      border-radius: 50%;
-      color: #222;
-      font-size: 22px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s;
-    }
-    .btn-profile:hover { background: rgba(0,0,0,0.18); }
+    /* ===== SCREENS ===== */
+    .screen { display: none; }
+    .screen.active { display: block; }
 
-    /* Tabs */
-    .tab-nav {
-      background: var(--card);
-      border-bottom: 2px solid var(--border);
-      display: flex;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+    /* ===== REGISTRATION ===== */
+    .reg-wrap { max-width: 500px; margin: 32px auto; padding: 0 16px 40px; }
+    .card { background: var(--white); border-radius: var(--radius); padding: 28px 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+    .card-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+    .card-subtitle { font-size: 15px; color: var(--sub); margin-bottom: 24px; line-height: 1.6; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 14px 16px; font-size: 16px;
+      border: 2px solid #e0e0e0; border-radius: 8px; outline: none;
+      transition: border-color 0.2s; font-family: inherit; background: #fafafa;
     }
-    .tab-btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 12px 10px;
-      font-size: 15px;
-      font-weight: bold;
-      color: var(--text-sub);
-      background: none;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      font-family: inherit;
-      transition: color 0.2s, border-color 0.2s;
-      white-space: nowrap;
+    .form-input:focus { border-color: var(--pink); background: var(--white); }
+    .form-note { margin-top: 10px; padding: 10px 14px; background: #fff5f9; border-left: 3px solid var(--pink); border-radius: 0 6px 6px 0; font-size: 14px; color: #555; line-height: 1.7; }
+    .error-msg { font-size: 14px; color: var(--pink); margin-top: 8px; display: none; padding: 8px 12px; background: #fff0f5; border-radius: 6px; }
+    .btn-reg {
+      display: block; width: 100%; padding: 16px 24px; font-size: 18px; font-weight: bold;
+      background: var(--pink); color: var(--white); border: none; border-radius: 8px;
+      cursor: pointer; min-height: 56px; transition: background 0.2s; font-family: inherit;
     }
-    .tab-btn.active { color: #222; border-bottom-color: var(--col-yellow); }
+    .btn-reg:hover:not(:disabled) { background: #d45a90; }
+    .btn-reg:disabled { opacity: 0.6; cursor: not-allowed; }
+    .info-note { font-size: 13px; color: var(--sub); background: #f5f5f5; padding: 10px 14px; border-radius: 8px; line-height: 1.7; }
 
-    .guide-banner {
-      background: #f5f5f5;
-      border-bottom: 1px solid var(--border);
-      padding: 11px 16px;
-      font-size: 15px;
-      color: var(--col-blue);
-      text-align: center;
-      line-height: 1.55;
+    /* ===== USER BAR ===== */
+    .user-bar { background: var(--white); padding: 10px 20px; font-size: 15px; color: var(--sub); border-bottom: 1px solid #eee; }
+    .user-bar strong { color: var(--text); }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--white); border-top: 2px solid #eee;
+      display: flex; z-index: 150; box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+    }
+    .nav-btn {
+      flex: 1; padding: 10px 4px 12px; border: none; background: none;
+      font-family: inherit; cursor: pointer; text-align: center;
+      color: var(--sub); transition: color 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .nav-btn .nav-icon  { font-size: 22px; }
+    .nav-btn .nav-label { font-size: 11px; font-weight: bold; }
+    .nav-btn.active { color: var(--pink); }
+
+    /* ===== SECTIONS ===== */
+    .post-screen { padding-bottom: 80px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ===== FEED ===== */
+    .post-wrap { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+    .guidance-bar {
+      background: #f0f2f5; color: #888;
+      padding: 12px 18px; border-radius: var(--radius);
+      font-size: 15px; text-align: center;
+      margin-bottom: 16px; line-height: 1.5;
+      border: 1px solid #e4e6ea;
     }
 
-    .content-wrap {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 16px 14px 170px;
-    }
-
-    /* Tab panes */
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    /* Topic */
     .topic-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow);
-      border-left: 5px solid var(--col-yellow);
+      background: var(--white); border-radius: var(--radius);
+      padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow);
+      border-left: 5px solid var(--pink);
     }
-    .topic-label {
-      font-size: 12px;
-      font-weight: bold;
-      color: #aaa;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-    }
-    .topic-body {
-      font-size: 17px;
-      line-height: 1.8;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .topic-label { font-size: 13px; font-weight: bold; color: var(--pink); margin-bottom: 10px; letter-spacing: 0.04em; }
+    .topic-body  { font-size: 16px; line-height: 1.9; white-space: pre-wrap; }
 
-    /* Post Cards */
-    .posts-list {}
-    .post-thread { margin-bottom: 14px; }
+    .input-card { background: var(--white); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+    .input-card h3 { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
+    .post-textarea {
+      width: 100%; padding: 14px; font-size: 16px; border: 2px solid #e0e0e0;
+      border-radius: 8px; resize: vertical; min-height: 110px; outline: none;
+      font-family: inherit; line-height: 1.7; transition: border-color 0.2s; background: #fafafa;
+    }
+    .post-textarea:focus { border-color: var(--pink); background: var(--white); }
+    .char-row { display: flex; justify-content: flex-end; margin-top: 6px; }
+    .char-count { font-size: 14px; color: var(--sub); }
+    .char-count.over { color: var(--pink); font-weight: bold; }
+    .post-btn-row { margin-top: 14px; }
+
+    .btn-post-submit {
+      display: block; width: 100%; padding: 16px 24px; font-size: 18px; font-weight: bold;
+      background: var(--yellow); color: var(--text); border: none; border-radius: 8px;
+      cursor: pointer; min-height: 56px; transition: background 0.2s; font-family: inherit;
+    }
+    .btn-post-submit:hover:not(:disabled) { background: #e0c800; }
+    .btn-post-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ===== POST CARDS ===== */
+    .posts-section h3 { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
     .post-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      box-shadow: var(--shadow);
-      border-left: 4px solid var(--border);
+      background: var(--white); border-radius: var(--radius);
+      padding: 18px 20px; margin-bottom: 14px; box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
     }
-    .post-card.is-mine {
-      background: #fff5f7;
-      border-left-color: var(--col-pink);
-    }
-    .post-card.is-admin {
-      background: #e8f3ff;
-      border-left-color: var(--col-blue);
-    }
-    .post-meta {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .badge {
-      font-size: 12px;
-      font-weight: bold;
-      padding: 3px 9px;
-      border-radius: 5px;
-      flex-shrink: 0;
-    }
-    .badge-mine { background: var(--col-pink); color: #fff; }
-    .badge-admin { background: var(--col-blue); color: #fff; }
-    .post-nick { font-size: 15px; font-weight: bold; }
-    .post-time {
-      font-size: 13px;
-      color: var(--text-sub);
-      margin-left: auto;
-    }
-    .post-body {
-      font-size: 16px;
-      line-height: 1.75;
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 12px;
-    }
-    .post-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    .btn-small {
-      font-size: 12px;
-      padding: 5px 12px;
-      background: #f0f0f0;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s;
-    }
-    .btn-small:hover { background: #e0e0e0; }
-    .reactions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .reaction-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      min-height: 44px;
-      min-width: 68px;
-      padding: 6px 14px;
-      font-size: 18px;
-      background: #f3f3f3;
-      border: 2px solid transparent;
-      border-radius: 24px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s ease;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .reaction-btn .r-count { font-size: 14px; font-weight: bold; color: var(--text); }
-    .reaction-btn.reacted { background: #fff3e0; border-color: #f5a623; }
-    .reaction-btn:hover { opacity: 0.85; }
+    .post-card.is-admin { background: var(--admin-bg); border-left: 5px solid var(--blue); }
+    .post-card.is-own   { background: var(--own-bg);   border-left: 5px solid var(--pink); }
+    @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-    /* Comment thread */
-    .comment-thread {
-      margin-top: 8px;
-      margin-left: 12px;
-      padding-left: 12px;
-      border-left: 2px solid #ddd;
-    }
-    .post-card.reply { margin-top: 8px; }
+    .post-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: bold; white-space: nowrap; }
+    .badge-admin { background: var(--blue); color: var(--white); }
+    .badge-own   { background: var(--pink); color: var(--white); }
+    .post-nick   { font-size: 15px; font-weight: bold; }
+    .post-time   { font-size: 13px; color: var(--sub); margin-left: auto; white-space: nowrap; }
+    .post-body   { font-size: 16px; line-height: 1.8; margin-bottom: 14px; white-space: pre-wrap; word-break: break-word; }
 
-    /* Edit form */
-    .edit-form {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      background: #f9f9f9;
-      border-radius: 6px;
+    /* ===== REACTIONS ===== */
+    .reactions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .rx-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border: 2px solid #e0e0e0; border-radius: 100px;
+      background: #f8f8f8; cursor: pointer; font-size: 16px;
+      min-height: 48px; min-width: 74px; justify-content: center;
+      transition: all 0.15s; font-family: inherit; user-select: none; -webkit-user-select: none;
     }
-    .edit-form.open { display: block; }
-    .edit-form textarea {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      font-family: inherit;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      resize: none;
-      min-height: 80px;
-      outline: none;
-      margin-bottom: 8px;
-    }
-    .edit-form textarea:focus { border-color: var(--col-yellow); }
-    .edit-form-actions { display: flex; gap: 8px; }
+    .rx-btn:hover { border-color: var(--pink); background: var(--own-bg); }
+    .rx-btn.active { border-color: var(--pink); background: var(--own-bg); font-weight: bold; }
+    .rx-count { font-size: 15px; color: #888; }
 
-    /* Sticky input */
-    .input-sticky {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--card);
-      border-top: 2px solid var(--border);
-      padding: 12px 14px 14px;
-      box-shadow: 0 -4px 18px rgba(0,0,0,0.12);
-      z-index: 100;
+    /* ===== OWN POST ACTIONS ===== */
+    .own-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(217,0,96,0.15); }
+    .btn-edit-own, .btn-delete-own {
+      padding: 7px 14px; font-size: 13px; font-weight: bold;
+      border-radius: 6px; border: none; cursor: pointer;
+      font-family: inherit; min-height: 36px; transition: opacity 0.2s;
     }
-    .input-inner { max-width: 640px; margin: 0 auto; }
-    textarea.post-ta {
-      width: 100%;
-      padding: 12px 14px;
-      font-size: 16px;
-      font-family: inherit;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      resize: none;
-      height: 76px;
-      outline: none;
+    .btn-edit-own   { background: #f0f8fd; color: var(--blue); }
+    .btn-delete-own { background: var(--own-bg); color: var(--pink); }
+    .btn-edit-own:hover   { opacity: 0.75; }
+    .btn-delete-own:hover { opacity: 0.75; }
+
+    /* ===== EDIT FORM ===== */
+    .edit-area { margin-top: 10px; background: #fafafa; border-radius: 8px; padding: 12px; border: 1px solid #e0e0e0; }
+    .edit-textarea {
+      width: 100%; padding: 10px; font-size: 15px;
+      border: 2px solid #e0e0e0; border-radius: 6px; resize: vertical;
+      min-height: 80px; outline: none; font-family: inherit; line-height: 1.6;
       transition: border-color 0.2s;
-      -webkit-appearance: none;
-      color: var(--text);
-      background: #fff;
     }
-    textarea.post-ta:focus { border-color: var(--col-yellow); }
-    .input-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
+    .edit-textarea:focus { border-color: var(--pink); }
+    .edit-char-row { text-align: right; margin-top: 4px; }
+    .edit-char-count { font-size: 13px; color: var(--sub); }
+    .edit-btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-save-edit {
+      padding: 9px 18px; font-size: 14px; font-weight: bold;
+      background: var(--pink); color: var(--white); border: none;
+      border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 40px;
     }
-    .char-ctr { font-size: 14px; color: var(--text-sub); }
-    .char-ctr.over { color: var(--error); font-weight: bold; }
-    .btn-post {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 48px;
-      padding: 10px 28px;
-      font-size: 17px;
-      font-weight: bold;
-      background: var(--col-yellow);
-      color: #222;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, opacity 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-post:hover { background: #f0d800; }
-    .btn-post:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    /* Profile screen */
-    .profile-section {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin: 16px;
-      box-shadow: var(--shadow);
-    }
-    .profile-header {
-      text-align: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--border);
-    }
-    .profile-nick { font-size: 22px; font-weight: bold; color: #222; margin-bottom: 8px; }
-    .profile-stat { display: flex; justify-content: space-around; margin-top: 16px; }
-    .stat-item {
-      text-align: center;
-    }
-    .stat-num { font-size: 24px; font-weight: bold; color: var(--col-yellow); }
-    .stat-lbl { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
-
-    .profile-field {
-      margin-bottom: 20px;
-    }
-    .profile-field-label {
-      font-size: 14px;
-      font-weight: bold;
-      color: var(--text);
-      margin-bottom: 8px;
-      display: block;
-    }
-    .profile-field-value {
-      font-size: 16px;
-      color: var(--text);
-      padding: 10px 12px;
-      background: #f9f9f9;
-      border-radius: 6px;
-      word-break: break-all;
-      margin-bottom: 8px;
-    }
-    .profile-note {
-      font-size: 12px;
-      color: var(--text-sub);
-      line-height: 1.6;
-      padding: 10px 12px;
-      background: #f5f5f5;
-      border-radius: 6px;
-      border-left: 3px solid var(--col-pink);
+    .btn-cancel-edit {
+      padding: 9px 18px; font-size: 14px; font-weight: bold;
+      background: #eee; color: var(--text); border: none;
+      border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 40px;
     }
 
-    .email-edit-form {
-      display: none;
-      margin-top: 8px;
-    }
-    .email-edit-form.open { display: block; }
-    .email-edit-form input {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px 12px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      font-family: inherit;
-      outline: none;
-      margin-bottom: 8px;
-    }
-    .email-edit-form input:focus { border-color: var(--col-yellow); }
-    .email-edit-actions { display: flex; gap: 8px; }
+    /* ===== 論理削除・編集済み ===== */
+    .post-deleted { opacity: 0.5; }
+    .deleted-placeholder { color: var(--sub); font-style: italic; }
+    .edited-label { font-size: 12px; color: var(--sub); font-weight: normal; margin-left: 4px; }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      font-size: 14px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-    .btn:hover { opacity: 0.85; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--col-yellow); color: #222; }
-    .btn-secondary { background: #ddd; color: #222; }
-    .btn-danger { background: var(--col-pink); color: #fff; }
+    /* ===== ADMIN REPLY THREAD ===== */
+    .reply-thread { margin-top: 8px; margin-left: 16px; border-left: 3px solid var(--blue); padding-left: 14px; }
+    .reply-card { background: var(--admin-bg); border-radius: 8px; padding: 12px 16px; margin-top: 6px; }
+    .reply-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .reply-body { font-size: 15px; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
 
-    /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 18px; height: 18px;
-      border: 3px solid rgba(0,0,0,0.18);
-      border-top-color: #555;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
+    /* ===== PROFILE ===== */
+    .profile-wrap { max-width: 600px; margin: 0 auto; padding: 16px; }
+    .profile-card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    .profile-card h2 { font-size: 18px; font-weight: bold; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .profile-row { margin-bottom: 20px; }
+    .profile-label { font-size: 13px; color: var(--sub); margin-bottom: 4px; font-weight: bold; letter-spacing: 0.03em; }
+    .profile-value { font-size: 17px; font-weight: bold; word-break: break-all; }
+    .email-change-toggle { font-size: 14px; color: var(--pink); background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: underline; padding: 0; margin-top: 8px; display: inline-block; }
+    .email-change-form { display: none; margin-top: 12px; }
+    .email-change-form .form-input { margin-bottom: 8px; }
+    .btn-small { padding: 10px 20px; font-size: 15px; font-weight: bold; background: var(--pink); color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-family: inherit; min-height: 44px; }
+    .btn-small:hover { background: #d45a90; }
+    .btn-cancel-sm { padding: 10px 20px; font-size: 15px; font-weight: bold; background: #eee; color: var(--text); border: none; border-radius: 8px; cursor: pointer; font-family: inherit; min-height: 44px; margin-left: 8px; }
+    .warn-note { font-size: 13px; color: #b05000; background: #fff8f0; padding: 10px 14px; border-radius: 8px; margin-top: 10px; border-left: 3px solid #f0a040; line-height: 1.7; }
+    .my-posts-list h3 { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
+
+    /* ===== REACTIONS SECTION ===== */
+    .rx-section-wrap { max-width: 680px; margin: 0 auto; padding: 16px; }
+    .rx-section-title { font-size: 17px; font-weight: bold; margin-bottom: 12px; }
+    .my-rx-indicator { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .my-rx-tag { background: var(--own-bg); border: 2px solid var(--pink); border-radius: 100px; padding: 4px 12px; font-size: 13px; font-weight: bold; color: var(--pink); }
+
+    /* ===== COMMON ===== */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--sub); font-size: 16px; line-height: 1.8; }
+    .loading-state { text-align: center; padding: 40px; color: var(--sub); font-size: 16px; }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    .spinner-w { border-color: rgba(255,255,255,0.3); border-top-color: var(--white); }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px); background: #222; color: var(--white); padding: 12px 24px; border-radius: 100px; font-size: 16px; font-weight: bold; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; white-space: nowrap; max-width: 90vw; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 150px;
-      left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      background: rgba(33,33,33,0.92);
-      color: #fff;
-      padding: 13px 30px;
-      border-radius: 30px;
-      font-size: 15px;
-      z-index: 300;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    .state-msg {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-sub);
-      font-size: 16px;
-    }
-
-    @media (max-width: 420px) {
-      .reactions { gap: 6px; }
-      .reaction-btn { min-width: 58px; padding: 5px 10px; }
-      .btn-post { padding: 10px 20px; }
+    @media (max-width: 500px) {
+      .card, .input-card, .topic-card, .profile-card { padding: 20px 16px; }
+      .post-card { padding: 16px; }
+      .rx-btn { padding: 8px 12px; min-width: 64px; font-size: 15px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ========================================================
-     画面1：登録画面
-     ======================================================== -->
-<div id="screen-register">
-  <div class="reg-header">
-    <div class="brand">ぐるっとポン</div>
-    <div class="sub">コミュニティ参加登録</div>
-  </div>
-  <div class="reg-body">
-    <div class="form-group">
-      <label for="inp-nick">ニックネーム<span class="req">*</span></label>
-      <input type="text" id="inp-nick" placeholder="例：さくら太郎" maxlength="30" autocomplete="nickname">
-      <p class="form-note">このニックネームは他の参加者にも公開されます。本名は避け、ニックネームを入力してください。一度登録すると変更できません。</p>
-      <p class="form-error" id="err-nick">ニックネームを入力してください。</p>
+<header class="app-header">
+  <h1 id="site-title">ぐるっとポン コミュニティ</h1>
+</header>
+
+<!-- ========== 画面1：登録 ========== -->
+<div id="screen-register" class="screen">
+  <div class="reg-wrap">
+    <div class="card">
+      <p class="card-title">投稿・リアクションに参加する</p>
+      <p class="card-subtitle">投稿やリアクションをするにはニックネームとメールアドレスの登録が必要です。</p>
+      <div class="form-group">
+        <label class="form-label" for="inp-nick">ニックネーム</label>
+        <input class="form-input" type="text" id="inp-nick" placeholder="例：さくら" maxlength="30" autocomplete="off">
+        <div class="form-note">このニックネームは他の参加者にも公開されます。本名は避け、ニックネームを入力してください。また、「ぐるっとポン」に登録済みのお名前(ニックネーム)と異なっていても問題ありません。</div>
+        <div class="error-msg" id="err-nick">ニックネームを入力してください。</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="inp-email">メールアドレス</label>
+        <input class="form-input" type="email" id="inp-email" placeholder="例：taro@example.co.jp" autocomplete="email" inputmode="email">
+        <div class="form-note">ぐるっとポンにご登録のメールアドレスを入力してください。異なるメールアドレスでご登録された場合、当選対象外となる場合があります。</div>
+        <div class="error-msg" id="err-email">メールアドレスの形式が正しくありません。@以降のドメインをご確認ください。</div>
+      </div>
+      <button class="btn-reg" id="btn-register" onclick="doRegister()">参加する</button>
     </div>
-    <div class="form-group">
-      <label for="inp-email">メールアドレス<span class="req">*</span></label>
-      <input type="email" id="inp-email" placeholder="例：taro@mail.co.jp" autocomplete="email" inputmode="email">
-      <p class="form-note">ぐるっとポンにご登録のメールアドレスを入力してください。異なるメールアドレスでご登録された場合、当選対象外となる場合があります。<br>すでにご登録済みの方は、同じメールアドレスを入力すると自動的にログインできます。<strong>パスワードは不要です。</strong></p>
-      <p class="form-error" id="err-email">メールアドレスの形式が正しくありません。@以降のドメインをご確認ください。</p>
+    <div style="text-align:center; margin-top: 8px;">
+      <button onclick="browseOnly()" style="background:none; border:none; color:var(--sub); font-size:14px; cursor:pointer; font-family:inherit; text-decoration:underline; padding:8px;">登録せずに閲覧のみする</button>
     </div>
-    <button id="btn-register" class="btn-register">参加する</button>
+    <div class="info-note" style="margin-top:10px;">※ 以前にご登録いただいた方は、同じメールアドレスを入力すると自動的にログインされます。パスワードの設定は不要です。</div>
   </div>
 </div>
 
-<!-- ========================================================
-     画面2：メイン画面
-     ======================================================== -->
-<div id="screen-main">
-  <div class="main-header">
-    <h1>ぐるっとポン コミュニティ</h1>
-    <button class="btn-profile" id="btn-profile" title="プロフィール">👤</button>
+<!-- ========== 画面2：投稿 ========== -->
+<div id="screen-post" class="screen">
+  <div class="user-bar">
+    こんにちは、<strong id="disp-nick">-</strong>さん
+    <span id="guest-reg-btn" style="display:none; float:right;">
+      <button onclick="showScreen('screen-register')" style="background:var(--pink); color:#fff; border:none; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:bold; cursor:pointer; font-family:inherit;">登録して参加する</button>
+    </span>
   </div>
 
-  <!-- タブナビゲーション -->
-  <div class="tab-nav">
-    <button class="tab-btn active" data-tab="feed">投稿一覧</button>
-    <button class="tab-btn" data-tab="mypost">自分の投稿</button>
-    <button class="tab-btn" data-tab="myrxn">いいね・ハート</button>
-    <button class="tab-btn" data-tab="profile">プロフィール</button>
-  </div>
+  <div class="post-screen">
 
-  <div class="guide-banner">
-    投稿してリアクションをもらおう。他の方の投稿にもリアクションできます。
-  </div>
-
-  <!-- ===== タブ1：投稿一覧 ===== -->
-  <div id="tab-feed" class="tab-pane active">
-    <div class="content-wrap">
-      <div class="topic-card">
-        <div class="topic-label" id="topic-label">今日のお題・コラム</div>
-        <div id="topic-body" class="topic-body">読み込み中...</div>
-      </div>
-      <div id="posts-list" class="posts-list">
-        <div class="state-msg">投稿を読み込み中...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== タブ2：自分の投稿 ===== -->
-  <div id="tab-mypost" class="tab-pane">
-    <div class="content-wrap">
-      <div id="my-posts-list" class="posts-list">
-        <div class="state-msg">投稿を読み込み中...</div>
+    <!-- === フィード === -->
+    <div id="section-feed" class="section active">
+      <div class="post-wrap">
+        <div class="guidance-bar">投稿してリアクションをもらおう。他の方の投稿にもリアクションできます。</div>
+        <div class="topic-card">
+          <div class="topic-label">📌 お題・コラム</div>
+          <div class="topic-body" id="topic-body">読み込み中...</div>
+        </div>
+        <div class="input-card">
+          <h3>✏️ あなたの投稿</h3>
+          <textarea class="post-textarea" id="post-textarea" placeholder="ここに投稿内容を入力してください（140文字以内）" maxlength="140"></textarea>
+          <div class="char-row"><span class="char-count" id="char-count">0 / 140文字</span></div>
+          <div class="post-btn-row">
+            <button class="btn-post-submit" id="btn-post" onclick="doSubmitPost()">投稿する</button>
+          </div>
+        </div>
+        <div class="posts-section">
+          <h3>💬 みんなの投稿</h3>
+          <div id="posts-list"><div class="loading-state"><span class="spinner"></span>読み込んでいます...</div></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ===== タブ3：リアクション履歴 ===== -->
-  <div id="tab-myrxn" class="tab-pane">
-    <div class="content-wrap">
-      <div id="my-rxn-list" class="posts-list">
-        <div class="state-msg">読み込み中...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== タブ4：プロフィール ===== -->
-  <div id="tab-profile" class="tab-pane">
-    <div class="content-wrap">
-      <div class="profile-section">
-        <div class="profile-header">
-          <div class="profile-nick" id="profile-nick">-</div>
-          <div class="profile-stat">
-            <div class="stat-item">
-              <div class="stat-num" id="profile-posts">-</div>
-              <div class="stat-lbl">投稿数</div>
+    <!-- === プロフィール === -->
+    <div id="section-profile" class="section">
+      <div class="profile-wrap">
+        <div class="profile-card">
+          <h2>👤 プロフィール</h2>
+          <div class="profile-row">
+            <div class="profile-label">ニックネーム</div>
+            <div class="profile-value" id="prof-nick">-</div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-label">登録メールアドレス</div>
+            <div class="profile-value" id="prof-email">-</div>
+            <div>
+              <button class="email-change-toggle" onclick="toggleEmailForm()">メールアドレスを変更する</button>
             </div>
-            <div class="stat-item">
-              <div class="stat-num" id="profile-rxn">-</div>
-              <div class="stat-lbl">獲得リアクション</div>
+            <div class="email-change-form" id="email-change-form">
+              <input class="form-input" type="email" id="new-email-input" placeholder="新しいメールアドレス" inputmode="email" autocomplete="email">
+              <div class="error-msg" id="err-new-email">メールアドレスの形式が正しくありません。</div>
+              <div style="margin-top:8px;">
+                <button class="btn-small" onclick="doEmailChange()">変更する</button>
+                <button class="btn-cancel-sm" onclick="toggleEmailForm()">キャンセル</button>
+              </div>
+              <div class="warn-note">
+                ⚠️ ぐるっとポンに登録しているメールアドレスをご利用ください。異なるメールアドレスをご登録された場合、キャンペーンの参加対象にならない場合がございます。
+              </div>
+            </div>
+            <div class="info-note" style="margin-top:10px;">
+              ※ メールアドレスを変更しても、ニックネームや投稿履歴はそのまま引き継がれます。<br>
+              ※ パスワードは不要です。次回は同じメールアドレスを入力するとログインできます。
             </div>
           </div>
         </div>
-
-        <div class="profile-field">
-          <label class="profile-field-label">登録メールアドレス</label>
-          <div class="profile-field-value" id="profile-email">-</div>
-          <button id="btn-edit-email" class="btn btn-secondary" style="width:100%">📧 メールアドレスを変更</button>
-          <div class="email-edit-form" id="email-edit-form">
-            <input type="email" id="edit-email-input" placeholder="新しいメールアドレス" autocomplete="email" inputmode="email">
-            <div class="email-edit-actions">
-              <button id="btn-cancel-email" class="btn btn-secondary">キャンセル</button>
-              <button id="btn-save-email" class="btn btn-primary">保存</button>
-            </div>
-            <div class="profile-note" style="margin-top:8px">
-              ぐるっとポンに登録しているメールアドレスをご利用ください。異なるメールアドレスですと、キャンペーンの参加対象にならない場合がございます。
-            </div>
-          </div>
-        </div>
-
-        <div class="profile-field">
-          <label class="profile-field-label">登録日</label>
-          <div class="profile-field-value" id="profile-created">-</div>
+        <div class="my-posts-list">
+          <h3>📝 自分の投稿一覧</h3>
+          <div id="my-posts-list"><div class="loading-state"><span class="spinner"></span>読み込んでいます...</div></div>
         </div>
       </div>
     </div>
+
+    <!-- === リアクション済み === -->
+    <div id="section-reactions" class="section">
+      <div class="rx-section-wrap">
+        <div class="rx-section-title">❤️ リアクションした投稿</div>
+        <div id="reacted-posts-list"><div class="loading-state"><span class="spinner"></span>読み込んでいます...</div></div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- 投稿入力（固定フッター） -->
-  <div class="input-sticky">
-    <div class="input-inner">
-      <textarea id="post-ta" class="post-ta" placeholder="投稿内容を入力してください（140文字以内）" maxlength="140"></textarea>
-      <div class="input-footer">
-        <span class="char-ctr"><span id="char-count">0</span> / 140</span>
-        <button id="btn-post" class="btn-post">
-          <span id="post-lbl">投稿する</span>
-          <span id="post-spin" class="spinner" style="display:none"></span>
-        </button>
-      </div>
-    </div>
+  <!-- ボトムナビ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-feed" onclick="showSection('feed')">
+      <span class="nav-icon">💬</span><span class="nav-label">みんなの投稿</span>
+    </button>
+    <button class="nav-btn" id="nav-profile" onclick="showSection('profile')">
+      <span class="nav-icon">👤</span><span class="nav-label">プロフィール</span>
+    </button>
+    <button class="nav-btn" id="nav-reactions" onclick="showSection('reactions')">
+      <span class="nav-icon">❤️</span><span class="nav-label">リアクション済み</span>
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ========== 登録促進モーダル ========== -->
+<div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#fff; border-radius:16px; padding:28px 24px; max-width:420px; width:100%;">
+    <p style="font-size:18px; font-weight:bold; margin-bottom:8px;" id="modal-title">投稿するには登録が必要です</p>
+    <p style="font-size:14px; color:var(--sub); margin-bottom:20px; line-height:1.6;">ニックネームとメールアドレスを登録すると、投稿・リアクションができます。閲覧のみなら登録不要です。</p>
+    <button onclick="goToRegister()" style="display:block; width:100%; padding:14px; font-size:16px; font-weight:bold; background:var(--pink); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family:inherit; margin-bottom:10px;">登録して参加する</button>
+    <button onclick="closeModal()" style="display:block; width:100%; padding:12px; font-size:15px; background:none; color:var(--sub); border:1px solid #e0e0e0; border-radius:8px; cursor:pointer; font-family:inherit;">閲覧のみに戻る</button>
   </div>
 </div>
 
-<!-- トースト通知 -->
-<div id="toast">投稿しました！</div>
-
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
-  /* ==============================================================
-     Firebase 設定
-  ============================================================== */
-  const firebaseConfig = {
-    apiKey: "AIzaSyCjifw0gm1xq0nptWF-8cjaaboTpRS1x1M",
-    authDomain: "gurutto-pon-test1.firebaseapp.com",
-    databaseURL: "https://gurutto-pon-test1-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "gurutto-pon-test1",
-    storageBucket: "gurutto-pon-test1.appspot.com",
-    messagingSenderId: "532098272164",
-    appId: "1:532098272164:web:68d0aa9be4590ae8b04f31"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCjifw0gm1xq0nptWF-8cjaaboTpRS1x1M",
+  databaseURL: "https://gurutto-pon-test1-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+firebase.initializeApp(firebaseConfig);
+const db   = firebase.database();
+const BASE = 'comments';
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const BASE = 'comments';
+let currentUser    = null;
+let allPosts       = {};
+let currentSection = 'feed';
 
-  /* ==============================================================
-     ユーティリティ
-  ============================================================== */
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest(
-      'SHA-256', new TextEncoder().encode(str.toLowerCase().trim())
-    );
-    return Array.from(new Uint8Array(buf))
-      .map(b => b.toString(16).padStart(2, '0')).join('');
+// ===== UTILS =====
+async function sha256hex(str) {
+  const buf  = new TextEncoder().encode(str.toLowerCase().trim());
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function formatTs(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tid); t._tid = setTimeout(() => t.classList.remove('show'), 3000);
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== VALIDATION =====
+const EMAIL_BL = new Set(['test.com','example.com','dummy.com','fake.com','invalid.com','test.org','example.org','example.net','sample.com','mailinator.com','guerrillamail.com','yopmail.com','spam4.me','trashmail.com','discard.email']);
+function isValidEmail(e) {
+  const m = e.match(/^([^\s@]+)@([^\s@]+\.[^\s@]+)$/);
+  return m && !EMAIL_BL.has(m[2].toLowerCase()) && m[2].length >= 4;
+}
+
+// ===== REGISTER / AUTO-LOGIN =====
+const FORBIDDEN_NICKNAMES = ['運営', '管理者', '管理人', 'admin', 'administrator', 'moderator', 'mod', 'staff', 'スタッフ', 'サポート', 'support'];
+function isNicknameForbidden(name) {
+  const lower = name.toLowerCase().replace(/\s/g, '');
+  return FORBIDDEN_NICKNAMES.some(w => lower.includes(w.toLowerCase()));
+}
+
+async function doRegister() {
+  const nickname = document.getElementById('inp-nick').value.trim();
+  const email    = document.getElementById('inp-email').value.trim();
+  const errNick  = document.getElementById('err-nick');
+  if (isNicknameForbidden(nickname)) {
+    errNick.textContent = 'そのニックネームは使用できません。別のニックネームをお試しください。';
+    errNick.style.display = 'block';
+    document.getElementById('err-email').style.display = !isValidEmail(email) ? 'block' : 'none';
+    return;
   }
+  errNick.textContent = 'ニックネームを入力してください。';
+  document.getElementById('err-nick').style.display  = !nickname                ? 'block' : 'none';
+  document.getElementById('err-email').style.display = !isValidEmail(email) ? 'block' : 'none';
+  if (!nickname || !isValidEmail(email)) return;
 
-  function formatDate(ts) {
-    if (!ts) return '';
-    const d = new Date(ts);
-    return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} `
-         + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-
-  function esc(s) {
-    return String(s ?? '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function countReactions(reactions) {
-    const c = { thumb: 0, heart: 0, idea: 0 };
-    if (!reactions) return c;
-    Object.values(reactions).forEach(r => {
-      if (r.thumb === true) c.thumb++;
-      if (r.heart === true) c.heart++;
-      if (r.idea === true) c.idea++;
-    });
-    return c;
-  }
-
-  function getUserReacted(reactions, hash) {
-    if (!reactions || !reactions[hash]) return { thumb: false, heart: false, idea: false };
-    const r = reactions[hash];
-    return {
-      thumb: r.thumb === true,
-      heart: r.heart === true,
-      idea: r.idea === true
-    };
-  }
-
-  const BLACKLIST = new Set([
-    'test.com','example.com','dummy.com','example.org','example.net',
-    'test.org','test.net','sample.com','fake.com','invalid.com',
-    'localhost.com','noemail.com','nomail.com','nospam.com',
-    'mailinator.com','guerrillamail.com','temp-mail.org','throwaway.email',
-    'yopmail.com','trashmail.com','sharklasers.com','dispostable.com',
-    'tempmail.com','fakemail.com','tempinbox.com','spam4.me',
-    'maildrop.cc','discard.email','mailnull.com'
-  ]);
-
-  function validateEmail(email) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return false;
-    const domain = email.split('@')[1].toLowerCase();
-    return !BLACKLIST.has(domain);
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2600);
-  }
-
-  /* ==============================================================
-     アプリ状態
-  ============================================================== */
-  let currentUserHash = null;
-  let currentNickname = null;
-  let currentEmail = null;
-  let allPostsData = null;
-
-  /* ==============================================================
-     初期化
-  ============================================================== */
-  (async function init() {
-    const email = localStorage.getItem('gp_email');
-    const nick  = localStorage.getItem('gp_nickname');
-    if (email && nick) {
-      // 既存ユーザー：自動ログイン
-      const hash = await sha256(email);
-      // Firebase に存在するか確認
-      const snap = await db.ref(`${BASE}/users/${hash}`).once('value');
-      if (snap.exists()) {
-        currentUserHash = hash;
-        currentNickname = snap.val().nickname;
-        currentEmail = email;
-        showMainScreen();
-      } else {
-        // 削除されたユーザー → 登録画面へ
-        localStorage.clear();
-      }
-    }
-  })();
-
-  /* ==============================================================
-     登録処理
-  ============================================================== */
-  document.getElementById('inp-nick').addEventListener('input', () => {
-    document.getElementById('err-nick').classList.remove('visible');
-  });
-  document.getElementById('inp-email').addEventListener('input', () => {
-    document.getElementById('err-email').classList.remove('visible');
-  });
-
-  document.getElementById('btn-register').addEventListener('click', async () => {
-    const nickname = document.getElementById('inp-nick').value.trim();
-    const email    = document.getElementById('inp-email').value.trim();
-    let valid = true;
-
-    if (!nickname) {
-      document.getElementById('err-nick').classList.add('visible');
-      valid = false;
-    }
-    if (!validateEmail(email)) {
-      document.getElementById('err-email').classList.add('visible');
-      valid = false;
-    }
-    if (!valid) return;
-
-    const btn = document.getElementById('btn-register');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> 登録中...';
-
-    try {
-      const hash = await sha256(email);
-      const userRef = db.ref(`${BASE}/users/${hash}`);
-      const snap = await userRef.once('value');
-
-      const isExisting = snap.exists();
-      const finalNick = isExisting ? snap.val().nickname : nickname;
-
-      if (!isExisting) {
-        await userRef.set({
-          nickname: finalNick,
-          email: email,
-          createdAt: firebase.database.ServerValue.TIMESTAMP
-        });
-      }
-
-      localStorage.setItem('gp_email', email);
-      localStorage.setItem('gp_nickname', finalNick);
-      currentUserHash = hash;
-      currentNickname = finalNick;
-      currentEmail = email;
-
-      showMainScreen();
-      setTimeout(() => {
-        if (isExisting) {
-          showToast('おかえりなさい！ログインしました。');
-        } else {
-          showToast('登録が完了しました！ようこそ！');
-        }
-      }, 300);
-    } catch (err) {
-      console.error(err);
-      alert('登録中にエラーが発生しました。\n通信状態をご確認のうえ、もう一度お試しください。');
-      btn.disabled = false;
-      btn.innerHTML = '参加する';
-    }
-  });
-
-  /* ==============================================================
-     メイン画面
-  ============================================================== */
-  function showMainScreen() {
-    document.getElementById('screen-register').style.display = 'none';
-    document.getElementById('screen-main').style.display = 'block';
-    setupTabs();
-    startFirebaseListeners();
-    updateProfileTab();
-  }
-
-  function setupTabs() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-
-        if (tab === 'profile') {
-          updateProfileTab();
-        } else if (tab === 'mypost') {
-          renderMyPosts();
-        } else if (tab === 'myrxn') {
-          renderMyReactions();
-        }
-      });
-    });
-  }
-
-  document.getElementById('btn-profile').addEventListener('click', () => {
-    document.querySelector('[data-tab="profile"]').click();
-  });
-
-  function startFirebaseListeners() {
-    db.ref(`${BASE}/topic`).on('value', snap => {
-      const data = snap.val();
-      document.getElementById('topic-body').textContent =
-        (data && data.text) ? data.text : '（お題は設定されていません）';
-      document.getElementById('topic-label').textContent =
-        (data && data.label) ? data.label : '今日のお題・コラム';
-    });
-
-    db.ref(`${BASE}/posts`).orderByChild('createdAt').on('value', snap => {
-      allPostsData = snap.val();
-      renderFeed();
-    });
-  }
-
-  function renderFeed() {
-    const container = document.getElementById('posts-list');
-    if (!allPostsData) {
-      container.innerHTML = '<div class="state-msg">まだ投稿がありません。最初の投稿をしてみましょう！</div>';
-      return;
-    }
-
-    // 可視投稿のみ、ツリー構造を作成
-    const posts = {};
-    Object.entries(allPostsData)
-      .filter(([, p]) => p.isVisible !== false)
-      .forEach(([id, p]) => { posts[id] = { ...p, id }; });
-
-    // 親投稿と返信を分類
-    const threadMap = {}; // parentId -> [replies]
-    const roots = [];
-
-    Object.values(posts).forEach(p => {
-      if (p.replyTo) {
-        if (!threadMap[p.replyTo]) threadMap[p.replyTo] = [];
-        threadMap[p.replyTo].push(p);
-      } else {
-        roots.push(p);
-      }
-    });
-
-    // 新しい順にソート
-    roots.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    Object.values(threadMap).forEach(arr => {
-      arr.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    });
-
-    const scrollY = window.scrollY;
-
-    container.innerHTML = roots.map(p => {
-      const thread = renderPostThread(p, threadMap[p.id] || []);
-      return `<div class="post-thread">${thread}</div>`;
-    }).join('');
-
-    requestAnimationFrame(() => window.scrollTo(0, scrollY));
-  }
-
-  function renderPostThread(post, replies) {
-    const isMine = post.userId === currentUserHash;
-    const cnt = countReactions(post.reactions);
-    const my  = getUserReacted(post.reactions, currentUserHash);
-
-    let html = `
-      <div class="post-card${isMine ? ' is-mine' : ''}${post.isAdmin ? ' is-admin' : ''}" data-id="${esc(post.id)}">
-        <div class="post-meta">
-          ${isMine ? '<span class="badge badge-mine">自分</span>' : ''}
-          ${post.isAdmin ? '<span class="badge badge-admin">運営</span>' : ''}
-          <span class="post-nick">${esc(post.nickname)}</span>
-          <span class="post-time">${formatDate(post.createdAt)}</span>
-        </div>
-        <div class="post-body">${esc(post.content)}</div>
-        ${isMine ? `
-          <div class="post-actions">
-            <button class="btn-small" onclick="openEditForm('${esc(post.id)}')">✏️ 編集</button>
-            <button class="btn-small" onclick="deletePost('${esc(post.id)}', event)" style="color:#d90060">🗑️ 削除</button>
-          </div>
-        ` : ''}
-        <div class="reactions">
-          <button class="reaction-btn${my.thumb ? ' reacted' : ''}" data-type="thumb" onclick="toggleReaction('${esc(post.id)}', 'thumb')">
-            👍 <span class="r-count">${cnt.thumb}</span>
-          </button>
-          <button class="reaction-btn${my.heart ? ' reacted' : ''}" data-type="heart" onclick="toggleReaction('${esc(post.id)}', 'heart')">
-            ❤️ <span class="r-count">${cnt.heart}</span>
-          </button>
-          <button class="reaction-btn${my.idea ? ' reacted' : ''}" data-type="idea" onclick="toggleReaction('${esc(post.id)}', 'idea')">
-            💡 <span class="r-count">${cnt.idea}</span>
-          </button>
-        </div>
-        <div class="edit-form" id="edit-${esc(post.id)}">
-          <textarea maxlength="140">${esc(post.content)}</textarea>
-          <div class="edit-form-actions">
-            <button class="btn btn-secondary" onclick="closeEditForm('${esc(post.id)}')">キャンセル</button>
-            <button class="btn btn-primary" onclick="saveEditPost('${esc(post.id)}')">保存</button>
-          </div>
-        </div>
-      </div>`;
-
-    if (replies.length > 0) {
-      html += `<div class="comment-thread">
-        ${replies.map(r => renderPostThread(r, [])).join('')}
-      </div>`;
-    }
-
-    return html;
-  }
-
-  function renderMyPosts() {
-    const container = document.getElementById('my-posts-list');
-    if (!allPostsData) {
-      container.innerHTML = '<div class="state-msg">投稿を読み込み中...</div>';
-      return;
-    }
-
-    const myPosts = Object.entries(allPostsData)
-      .filter(([, p]) => p.userId === currentUserHash && !p.replyTo)
-      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
-
-    if (myPosts.length === 0) {
-      container.innerHTML = '<div class="state-msg">まだ投稿がありません。</div>';
-      return;
-    }
-
-    container.innerHTML = myPosts.map(([id, p]) => {
-      const thread = renderPostThread({ ...p, id }, Object.entries(allPostsData)
-        .filter(([, reply]) => reply.replyTo === id)
-        .map(([rid, r]) => ({ ...r, id: rid }))
-        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
-      return `<div class="post-thread">${thread}</div>`;
-    }).join('');
-  }
-
-  function renderMyReactions() {
-    const container = document.getElementById('my-rxn-list');
-    if (!allPostsData) {
-      container.innerHTML = '<div class="state-msg">読み込み中...</div>';
-      return;
-    }
-
-    const myReacted = Object.entries(allPostsData)
-      .filter(([, p]) => {
-        if (!p.reactions || !p.reactions[currentUserHash]) return false;
-        const r = p.reactions[currentUserHash];
-        return r.thumb === true || r.heart === true || r.idea === true;
-      })
-      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
-
-    if (myReacted.length === 0) {
-      container.innerHTML = '<div class="state-msg">まだリアクションがありません。</div>';
-      return;
-    }
-
-    container.innerHTML = myReacted.map(([id, p]) => {
-      const r = p.reactions[currentUserHash];
-      const rxns = [];
-      if (r.thumb === true) rxns.push('👍');
-      if (r.heart === true) rxns.push('❤️');
-      if (r.idea === true) rxns.push('💡');
-
-      const cnt = countReactions(p.reactions);
-      const my = getUserReacted(p.reactions, currentUserHash);
-
-      return `
-        <div class="post-card${p.isAdmin ? ' is-admin' : ''}" data-id="${esc(id)}">
-          <div class="post-meta">
-            ${p.isAdmin ? '<span class="badge badge-admin">運営</span>' : ''}
-            <span class="post-nick">${esc(p.nickname)}</span>
-            <span class="post-time">${formatDate(p.createdAt)}</span>
-          </div>
-          <div class="post-body" style="margin-bottom:6px">${esc(p.content)}</div>
-          <div style="font-size:13px;color:#666;margin-bottom:10px">あなたがした反応: ${rxns.join(' ')}</div>
-          <div class="reactions">
-            <button class="reaction-btn${my.thumb ? ' reacted' : ''}" onclick="toggleReaction('${esc(id)}', 'thumb')">
-              👍 <span class="r-count">${cnt.thumb}</span>
-            </button>
-            <button class="reaction-btn${my.heart ? ' reacted' : ''}" onclick="toggleReaction('${esc(id)}', 'heart')">
-              ❤️ <span class="r-count">${cnt.heart}</span>
-            </button>
-            <button class="reaction-btn${my.idea ? ' reacted' : ''}" onclick="toggleReaction('${esc(id)}', 'idea')">
-              💡 <span class="r-count">${cnt.idea}</span>
-            </button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function updateProfileTab() {
-    db.ref(`${BASE}/users/${currentUserHash}`).once('value', snap => {
-      if (!snap.exists()) return;
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-w"></span>確認中...';
+  try {
+    const hash = await sha256hex(email);
+    const snap = await db.ref(`${BASE}/users/${hash}`).once('value');
+    if (snap.exists()) {
       const u = snap.val();
-      document.getElementById('profile-nick').textContent = u.nickname;
-      document.getElementById('profile-email').textContent = u.email;
-      document.getElementById('profile-created').textContent = formatDate(u.createdAt);
+      localStorage.setItem('gp_nickname', u.nickname);
+      localStorage.setItem('gp_email',    u.email || email);
+      localStorage.setItem('gp_hash',     hash);
+      currentUser = { nickname: u.nickname, email: u.email || email, hash };
+      showToast('すでに登録済みです。ログインしました！');
+    } else {
+      await db.ref(`${BASE}/users/${hash}`).set({ nickname, email, createdAt: firebase.database.ServerValue.TIMESTAMP });
+      localStorage.setItem('gp_nickname', nickname);
+      localStorage.setItem('gp_email',    email);
+      localStorage.setItem('gp_hash',     hash);
+      currentUser = { nickname, email, hash };
+    }
+    startPostScreen();
+  } catch(e) { console.error(e); showToast('エラーが発生しました。もう一度お試しください。'); }
+  finally { btn.disabled = false; btn.textContent = '参加する'; }
+}
 
-      let postCount = 0, rxnCount = 0;
-      if (allPostsData) {
-        Object.values(allPostsData).forEach(p => {
-          if (p.userId === currentUserHash && !p.isAdmin) {
-            postCount++;
-            rxnCount += countReactions(p.reactions).thumb + countReactions(p.reactions).heart + countReactions(p.reactions).idea;
-          }
-        });
-      }
-      document.getElementById('profile-posts').textContent = postCount;
-      document.getElementById('profile-rxn').textContent = rxnCount;
+// ===== POST SCREEN =====
+function startPostScreen() {
+  showScreen('screen-post');
+  document.getElementById('disp-nick').textContent = currentUser.nickname;
+  const guestBtn = document.getElementById('guest-reg-btn');
+  if (guestBtn) guestBtn.style.display = 'none';
+  document.getElementById('post-textarea').addEventListener('input', () => {
+    const len = document.getElementById('post-textarea').value.length;
+    const el  = document.getElementById('char-count');
+    el.textContent = `${len} / 140文字`;
+    el.className   = len > 140 ? 'char-count over' : 'char-count';
+  });
+  listenTopic();
+  listenPosts();
+}
+
+// ===== SECTION NAV =====
+function showSection(name) {
+  if (!currentUser && (name === 'profile' || name === 'reactions')) {
+    showModal('この機能を使うには登録が必要です');
+    return;
+  }
+  currentSection = name;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'profile')   renderProfile();
+  if (name === 'reactions') renderReactedPosts();
+}
+
+// ===== TOPIC =====
+function listenTopic() {
+  db.ref(`${BASE}/topic`).on('value', snap => {
+    const d = snap.val();
+    document.getElementById('topic-body').textContent = (d && d.text) ? d.text : 'お題は現在準備中です。しばらくお待ちください。';
+    if (d && d.siteTitle) {
+      document.getElementById('site-title').textContent = d.siteTitle;
+    }
+  });
+}
+
+// ===== POSTS LISTENER =====
+function listenPosts() {
+  db.ref(`${BASE}/posts`).orderByChild('createdAt').on('value', snap => {
+    allPosts = snap.val() || {};
+    renderFeed();
+    if (currentSection === 'profile')   renderProfile();
+    if (currentSection === 'reactions') renderReactedPosts();
+  });
+}
+
+// ===== REACTION HELPERS =====
+function countRx(rx) {
+  if (!rx) return { thumb:0, heart:0, idea:0 };
+  let thumb=0, heart=0, idea=0;
+  Object.values(rx).forEach(r => { if(r.thumb)thumb++; if(r.heart)heart++; if(r.idea)idea++; });
+  return { thumb, heart, idea };
+}
+function myRx(rx, type) {
+  if (!rx || !currentUser) return false;
+  return !!(rx[currentUser.hash] && rx[currentUser.hash][type]);
+}
+function hasMyReaction(rx) {
+  if (!rx || !currentUser || !rx[currentUser.hash]) return false;
+  const r = rx[currentUser.hash];
+  return r.thumb || r.heart || r.idea;
+}
+
+// ===== POST CARD HTML =====
+// scope: 同一postIdが複数画面に描画される際のid重複を防ぐためのprefix ('feed'|'profile'|'reactions')
+function postCardHTML(p, isReply, scope) {
+  const isOwn = currentUser && p.userId === currentUser.hash;
+  const c = countRx(p.reactions);
+  const rawId = p.id;
+  const id = esc(rawId);
+  const scopedId = esc((scope || 'feed') + '_' + rawId); // id重複防止
+
+  if (isReply) {
+    return `<div class="reply-card">
+      <div class="reply-meta">
+        <span class="badge badge-admin">運営</span>
+        <span class="post-time">${formatTs(p.createdAt)}</span>
+      </div>
+      <div class="reply-body">${esc(p.content)}</div>
+    </div>`;
+  }
+
+  // 論理削除済みはプレースホルダー表示
+  if (p.isDeleted) {
+    return `<div class="post-card post-deleted">
+      <div class="post-body deleted-placeholder">🗑️ この投稿は削除されました</div>
+    </div>`;
+  }
+
+  const cls = ['post-card', p.isAdmin ? 'is-admin' : (isOwn ? 'is-own' : '')].filter(Boolean).join(' ');
+  const editedLabel = p.editedAt ? ` <span class="edited-label">（編集済み）</span>` : '';
+
+  const editDelete = (isOwn && !p.isAdmin) ? `
+    <div class="own-actions">
+      <button class="btn-edit-own"   onclick="toggleEditForm('${scopedId}','${id}')">✏️ 編集</button>
+      <button class="btn-delete-own" onclick="doDeletePost('${id}')">🗑️ 削除</button>
+    </div>
+    <div class="edit-area" id="edit-area-${scopedId}" style="display:none;">
+      <textarea class="edit-textarea" id="edit-ta-${scopedId}" maxlength="140"
+        oninput="updateEditCount('${scopedId}')"></textarea>
+      <div class="edit-char-row"><span class="edit-char-count" id="edit-count-${scopedId}">0 / 140文字</span></div>
+      <div class="edit-btn-row">
+        <button class="btn-save-edit"   onclick="saveEdit('${id}','${scopedId}')">保存する</button>
+        <button class="btn-cancel-edit" onclick="toggleEditForm('${scopedId}','${id}')">キャンセル</button>
+      </div>
+    </div>` : '';
+
+  return `<div class="${cls}">
+    <div class="post-meta">
+      ${p.isAdmin ? '<span class="badge badge-admin">運営</span>' : ''}
+      ${isOwn && !p.isAdmin ? '<span class="badge badge-own">自分</span>' : ''}
+      <span class="post-nick">${esc(p.nickname)}</span>
+      <span class="post-time">${formatTs(p.createdAt)}${editedLabel}</span>
+    </div>
+    <div class="post-body">${esc(p.content)}</div>
+    <div class="reactions">
+      <button class="rx-btn${myRx(p.reactions,'thumb')?' active':''}" onclick="doReaction('${id}','thumb')">👍 <span class="rx-count">${c.thumb}</span></button>
+      <button class="rx-btn${myRx(p.reactions,'heart')?' active':''}" onclick="doReaction('${id}','heart')">❤️ <span class="rx-count">${c.heart}</span></button>
+      <button class="rx-btn${myRx(p.reactions,'idea')?' active':''}"  onclick="doReaction('${id}','idea')">💡 <span class="rx-count">${c.idea}</span></button>
+    </div>
+    ${editDelete}
+  </div>`;
+}
+
+// ===== RENDER FEED =====
+function renderFeed() {
+  const all = Object.entries(allPosts)
+    .map(([id,v]) => ({ id,...v }))
+    .filter(p => p.isVisible !== false); // 管理者非表示は除外、論理削除はプレースホルダー表示のため残す
+
+  const topLevel = all.filter(p => !p.parentId).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+  const repliesByParent = {};
+  all.filter(p => p.parentId).forEach(p => {
+    if (!repliesByParent[p.parentId]) repliesByParent[p.parentId] = [];
+    repliesByParent[p.parentId].push(p);
+  });
+
+  const list = document.getElementById('posts-list');
+  if (!topLevel.length) { list.innerHTML = '<div class="empty-state">まだ投稿がありません。<br>最初の投稿をしてみましょう！</div>'; return; }
+
+  list.innerHTML = topLevel.map(p => {
+    const replies = (repliesByParent[p.id] || []).sort((a,b) => (a.createdAt||0)-(b.createdAt||0));
+    const thread  = replies.length ? `<div class="reply-thread">${replies.map(r => postCardHTML(r, true, 'feed')).join('')}</div>` : '';
+    return postCardHTML(p, false, 'feed') + thread;
+  }).join('');
+}
+
+// ===== SUBMIT POST =====
+const POST_INTERVAL_MS = 30000; // 30秒
+async function doSubmitPost() {
+  if (!currentUser) { showModal('投稿するには登録が必要です'); return; }
+
+  // なりすまし防止（登録後にニックネームが変わるケースへの保険）
+  if (isNicknameForbidden(currentUser.nickname)) {
+    showToast('このニックネームでは投稿できません');
+    return;
+  }
+
+  // 連投制限
+  const now  = Date.now();
+  const last = parseInt(localStorage.getItem('gp_last_post') || '0');
+  const diff = now - last;
+  if (diff < POST_INTERVAL_MS) {
+    const remaining = Math.ceil((POST_INTERVAL_MS - diff) / 1000);
+    showToast(`投稿は${remaining}秒後に可能になります`);
+    return;
+  }
+
+  const content = document.getElementById('post-textarea').value.trim();
+  if (!content) { showToast('投稿内容を入力してください。'); return; }
+  if (content.length > 140) { showToast('140文字以内で入力してください。'); return; }
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>投稿中...';
+  try {
+    await db.ref(`${BASE}/posts`).push({
+      userId: currentUser.hash, nickname: currentUser.nickname, content,
+      createdAt: firebase.database.ServerValue.TIMESTAMP, isVisible: true, isAdmin: false
     });
+    localStorage.setItem('gp_last_post', Date.now());
+    document.getElementById('post-textarea').value = '';
+    document.getElementById('char-count').textContent = '0 / 140文字';
+    document.getElementById('char-count').className = 'char-count';
+    showToast('投稿しました！');
+  } catch(e) { console.error(e); showToast('エラーが発生しました。もう一度お試しください。'); }
+  finally { btn.disabled = false; btn.textContent = '投稿する'; }
+}
+
+// ===== REACTION =====
+async function doReaction(postId, type) {
+  if (!currentUser) { showModal('リアクションするには登録が必要です'); return; }
+  const ref  = db.ref(`${BASE}/posts/${postId}/reactions/${currentUser.hash}`);
+  const snap = await ref.once('value');
+  const cur  = snap.val() || {};
+  await ref.update({ [type]: !cur[type] });
+}
+
+// ===== EDIT / DELETE =====
+function toggleEditForm(scopedId, postId) {
+  const area = document.getElementById('edit-area-' + scopedId);
+  if (!area) return;
+  const open = area.style.display === 'block';
+  if (!open) {
+    const post = allPosts[postId];
+    if (post) { document.getElementById('edit-ta-' + scopedId).value = post.content; updateEditCount(scopedId); }
   }
+  area.style.display = open ? 'none' : 'block';
+}
+function updateEditCount(scopedId) {
+  const len = (document.getElementById('edit-ta-' + scopedId).value || '').length;
+  const el  = document.getElementById('edit-count-' + scopedId);
+  if (el) { el.textContent = `${len} / 140文字`; el.style.color = len > 140 ? '#d90060' : '#777'; }
+}
+async function saveEdit(postId, scopedId) {
+  const ta      = document.getElementById('edit-ta-' + scopedId);
+  const content = ta.value.trim();
+  if (!content)             { showToast('内容を入力してください。'); return; }
+  if (content.length > 140) { showToast('140文字以内で入力してください。'); return; }
+  try {
+    const post = allPosts[postId];
+    if (!post) { showToast('投稿が見つかりません'); return; }
+    // 編集前の内容を履歴として保存（論理編集）
+    const prevHistory = post.editHistory ? Object.values(post.editHistory) : [];
+    const newEntry = { content: post.content, editedAt: firebase.database.ServerValue.TIMESTAMP };
+    await db.ref(`${BASE}/posts/${postId}`).update({ content, editedAt: firebase.database.ServerValue.TIMESTAMP });
+    await db.ref(`${BASE}/posts/${postId}/editHistory`).push(newEntry);
+    document.getElementById('edit-area-' + scopedId).style.display = 'none';
+    showToast('投稿を更新しました');
+  } catch(e) { console.error(e); showToast('エラーが発生しました'); }
+}
+async function doDeletePost(postId) {
+  if (!confirm('この投稿を削除してよろしいですか？\n削除後は元に戻せません。')) return;
+  try {
+    // 論理削除：DBから消さずisDeletedフラグを立てる
+    await db.ref(`${BASE}/posts/${postId}`).update({
+      isDeleted: true,
+      deletedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+    showToast('投稿を削除しました');
+  } catch(e) { console.error(e); showToast('エラーが発生しました'); }
+}
 
-  /* ==============================================================
-     投稿編集・削除
-  ============================================================== */
-  // アクティブなタブ内で対象カードを探す（複数タブに同IDが存在するため）
-  function findPostCard(postId) {
-    const activePane = document.querySelector('.tab-pane.active');
-    return (activePane || document).querySelector(`.post-card[data-id="${postId}"]`);
+// ===== PROFILE =====
+function renderProfile() {
+  if (!currentUser) return;
+  document.getElementById('prof-nick').textContent  = currentUser.nickname;
+  document.getElementById('prof-email').textContent = currentUser.email;
+
+  const myPosts = Object.entries(allPosts)
+    .map(([id,v]) => ({ id,...v }))
+    .filter(p => p.userId === currentUser.hash && p.isVisible !== false && !p.isDeleted)
+    .sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+
+  const c = document.getElementById('my-posts-list');
+  c.innerHTML = myPosts.length
+    ? myPosts.map(p => postCardHTML(p, false, 'profile')).join('')
+    : '<div class="empty-state">まだ投稿がありません。</div>';
+}
+
+function toggleEmailForm() {
+  const f = document.getElementById('email-change-form');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+  if (f.style.display === 'block') document.getElementById('new-email-input').focus();
+}
+async function doEmailChange() {
+  const newEmail = document.getElementById('new-email-input').value.trim();
+  const errEl    = document.getElementById('err-new-email');
+  if (!isValidEmail(newEmail)) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  try {
+    await db.ref(`${BASE}/users/${currentUser.hash}`).update({ email: newEmail });
+    localStorage.setItem('gp_email', newEmail);
+    currentUser.email = newEmail;
+    document.getElementById('prof-email').textContent = newEmail;
+    document.getElementById('new-email-input').value = '';
+    toggleEmailForm();
+    showToast('メールアドレスを変更しました');
+  } catch(e) { console.error(e); showToast('変更中にエラーが発生しました'); }
+}
+
+// ===== REACTIONS SECTION =====
+function renderReactedPosts() {
+  const reacted = Object.entries(allPosts)
+    .map(([id,v]) => ({ id,...v }))
+    .filter(p => p.isVisible !== false && hasMyReaction(p.reactions))
+    .sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+
+  const c = document.getElementById('reacted-posts-list');
+  if (!reacted.length) { c.innerHTML = '<div class="empty-state">まだリアクションした投稿がありません。</div>'; return; }
+
+  c.innerHTML = reacted.map(p => {
+    const myR  = (p.reactions && p.reactions[currentUser.hash]) || {};
+    const tags = [myR.thumb?'👍':null, myR.heart?'❤️':null, myR.idea?'💡':null].filter(Boolean);
+    const base = postCardHTML(p, false, 'reactions');
+    const tagsHTML = `<div class="my-rx-indicator">${tags.map(t=>`<span class="my-rx-tag">${t} 自分がリアクション済み</span>`).join('')}</div>`;
+    return base.replace(/<\/div>\s*$/, tagsHTML + '</div>');
+  }).join('');
+}
+
+// ===== BROWSE ONLY =====
+function browseOnly() {
+  currentUser = null;
+  showScreen('screen-post');
+  document.getElementById('disp-nick').textContent = 'ゲスト';
+  const guestBtn = document.getElementById('guest-reg-btn');
+  if (guestBtn) guestBtn.style.display = 'inline';
+  listenTopic();
+  listenPosts();
+}
+
+function showModal(title) {
+  document.getElementById('modal-title').textContent = title;
+  const ov = document.getElementById('modal-overlay');
+  ov.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function goToRegister() {
+  closeModal();
+  showScreen('screen-register');
+}
+async function init() {
+  const nickname = localStorage.getItem('gp_nickname');
+  const email    = localStorage.getItem('gp_email');
+  const hash     = localStorage.getItem('gp_hash');
+  if (nickname && email && hash) {
+    currentUser = { nickname, email, hash };
+    startPostScreen();
+  } else {
+    browseOnly();
   }
-
-  window.openEditForm = function(postId) {
-    const card = findPostCard(postId);
-    if (card) card.querySelector('.edit-form').classList.add('open');
-  };
-
-  window.closeEditForm = function(postId) {
-    const card = findPostCard(postId);
-    if (card) card.querySelector('.edit-form').classList.remove('open');
-  };
-
-  window.saveEditPost = async function(postId) {
-    const card = findPostCard(postId);
-    if (!card) return;
-    const textarea = card.querySelector('.edit-form textarea');
-    const content = textarea.value.trim();
-    if (!content) { alert('投稿内容を入力してください。'); return; }
-    if (content.length > 140) { alert('140文字以内でお願いします。'); return; }
-
-    try {
-      await db.ref(`${BASE}/posts/${postId}/content`).set(content);
-      window.closeEditForm(postId);
-      showToast('投稿を更新しました！');
-    } catch (err) {
-      console.error(err);
-      alert('更新に失敗しました。');
-    }
-  };
-
-  window.deletePost = async function(postId, e) {
-    e.preventDefault();
-    if (!confirm('この投稿を削除してもよろしいですか？')) return;
-
-    try {
-      await db.ref(`${BASE}/posts/${postId}`).remove();
-      showToast('投稿を削除しました。');
-    } catch (err) {
-      console.error(err);
-      alert('削除に失敗しました。');
-    }
-  };
-
-  /* ==============================================================
-     リアクション
-  ============================================================== */
-  window.toggleReaction = async function(postId, type) {
-    try {
-      const ref = db.ref(`${BASE}/posts/${postId}/reactions/${currentUserHash}/${type}`);
-      const snap = await ref.once('value');
-      await ref.set(snap.val() === true ? false : true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  /* ==============================================================
-     投稿送信
-  ============================================================== */
-  const textarea = document.getElementById('post-ta');
-
-  textarea.addEventListener('input', () => {
-    const n = textarea.value.length;
-    const el = document.getElementById('char-count');
-    el.textContent = n;
-    el.closest('.char-ctr').classList.toggle('over', n > 140);
-  });
-
-  document.getElementById('btn-post').addEventListener('click', async () => {
-    const content = textarea.value.trim();
-    if (!content) { alert('投稿内容を入力してください。'); return; }
-    if (content.length > 140) { alert('140文字以内でお願いします。'); return; }
-
-    const btn    = document.getElementById('btn-post');
-    const lbl    = document.getElementById('post-lbl');
-    const spin   = document.getElementById('post-spin');
-    btn.disabled = true;
-    lbl.style.display = 'none';
-    spin.style.display = 'inline-block';
-
-    try {
-      await db.ref(`${BASE}/posts`).push({
-        userId:    currentUserHash,
-        nickname:  currentNickname,
-        content:   content,
-        createdAt: firebase.database.ServerValue.TIMESTAMP,
-        isVisible: true,
-        isAdmin:   false
-      });
-
-      textarea.value = '';
-      document.getElementById('char-count').textContent = '0';
-      document.getElementById('char-count').closest('.char-ctr').classList.remove('over');
-      showToast('投稿しました！');
-    } catch (err) {
-      console.error(err);
-      alert('投稿中にエラーが発生しました。\nもう一度お試しください。');
-    } finally {
-      btn.disabled = false;
-      lbl.style.display = 'inline';
-      spin.style.display = 'none';
-    }
-  });
-
-  /* ==============================================================
-     メールアドレス変更
-  ============================================================== */
-  document.getElementById('btn-edit-email').addEventListener('click', () => {
-    document.getElementById('email-edit-form').classList.add('open');
-    document.getElementById('edit-email-input').value = currentEmail;
-    document.getElementById('edit-email-input').focus();
-  });
-
-  document.getElementById('btn-cancel-email').addEventListener('click', () => {
-    document.getElementById('email-edit-form').classList.remove('open');
-  });
-
-  document.getElementById('btn-save-email').addEventListener('click', async () => {
-    const newEmail = document.getElementById('edit-email-input').value.trim();
-    if (!validateEmail(newEmail)) {
-      alert('メールアドレスの形式が正しくありません。');
-      return;
-    }
-
-    const btn = document.getElementById('btn-save-email');
-    btn.disabled = true;
-
-    try {
-      const newHash = await sha256(newEmail);
-      const oldHash = currentUserHash;
-
-      // 新ハッシュが既に存在しないかチェック
-      const existSnap = await db.ref(`${BASE}/users/${newHash}`).once('value');
-      if (existSnap.exists() && newHash !== oldHash) {
-        alert('そのメールアドレスは既に登録されています。別のメールアドレスでをご試ください。');
-        btn.disabled = false;
-        return;
-      }
-
-      // ユーザー情報を新ハッシュに移動
-      const userSnap = await db.ref(`${BASE}/users/${oldHash}`).once('value');
-      if (userSnap.exists()) {
-        const userData = userSnap.val();
-        await db.ref(`${BASE}/users/${newHash}`).set({
-          nickname: userData.nickname,
-          email: newEmail,
-          createdAt: userData.createdAt
-        });
-        await db.ref(`${BASE}/users/${oldHash}`).remove();
-
-        // すべての投稿の userId と reactions を更新
-        const postsSnap = await db.ref(`${BASE}/posts`).once('value');
-        if (postsSnap.exists()) {
-          const updates = {};
-          Object.entries(postsSnap.val()).forEach(([postId, post]) => {
-            // userId 更新
-            if (post.userId === oldHash) {
-              updates[`posts/${postId}/userId`] = newHash;
-            }
-            // reactions 更新（古いハッシュのリアクション）
-            if (post.reactions && post.reactions[oldHash]) {
-              updates[`posts/${postId}/reactions/${newHash}`] = post.reactions[oldHash];
-              updates[`posts/${postId}/reactions/${oldHash}`] = null;
-            }
-          });
-          if (Object.keys(updates).length > 0) {
-            await db.ref(BASE).update(updates);
-          }
-        }
-
-        // ローカルストレージ更新
-        localStorage.setItem('gp_email', newEmail);
-        currentUserHash = newHash;
-        currentEmail = newEmail;
-
-        document.getElementById('email-edit-form').classList.remove('open');
-        document.getElementById('profile-email').textContent = newEmail;
-        showToast('メールアドレスを更新しました！');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('更新に失敗しました。もう一度お試しください。');
-    } finally {
-      btn.disabled = false;
-    }
-  });
+}
+init();
 </script>
 </body>
 </html>
